@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal de Sistema</title>
+    <style>
+        body {
+            background-color: #1c2833; /* Gris oxford muy oscuro */
+            color: #00ffff; /* Acento cyan vibrante */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .terminal-window {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+        .terminal-header {
+            background-color: #161b22;
+            padding: 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+        }
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .close { background-color: #ff5f56; }
+        .minimize { background-color: #ffbd2e; }
+        .maximize { background-color: #27c93f; }
+        
+        .terminal-title {
+            color: #8b949e;
+            font-size: 14px;
+            margin-left: 20px;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 44px; /* Para centrar compensando los botones */
+        }
+        
+        .terminal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: #00ffff;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        .highlight {
+            color: #ffeb3b; /* Amarillo para resaltar el pastel y mensaje */
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .terminal-body { font-size: 12px; }
+            .terminal-window { height: 90vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="buttons">
+                <div class="button close"></div>
+                <div class="button minimize"></div>
+                <div class="button maximize"></div>
+            </div>
+            <div class="terminal-title">bash - root@aderis-system:~</div>
+        </div>
+        <div class="terminal-body" id="console"></div>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('console');
+        
+        // Secuencia de comandos y mensajes
+        const sequence = [
+            { text: "root@aderis-system:~$ python3 launch_birthday_protocol.py", speed: 40, delay: 500 },
+            { text: "[*] Inicializando dependencias...", speed: 20, delay: 400 },
+            { text: "[*] Estableciendo conexión segura con servidor EDU_La Paz...", speed: 20, delay: 800 },
+            { text: "[+] Conexión establecida. Bypasseando revisión de planeaciones... OK", speed: 20, delay: 600 },
+            { text: "[*] Desencriptando payload: HERMANA_TOP_SECRET.md", speed: 30, delay: 1000 },
+            { text: "Progreso: [==========] 100%", speed: 10, delay: 500 },
+            { text: " ", speed: 0, delay: 300 },
+            { text: "[+] EXTRACCIÓN COMPLETADA. Ejecutando render final...\n", speed: 30, delay: 800 },
+            { 
+                text: `
+         i i i
+        _|_|_|_
+       |       |
+     __|       |____
+    |^^^^^^^^^^^^^^^|
+    |  F E L I Z    |
+    |  C U M P L E  |
+    |    I B E T H  |
+    |_______________|
+    `, 
+                speed: 5, 
+                delay: 500,
+                isHighlight: true
+            },
+            { text: "\n¡MENSAJE ENVIADO CON ÉXITO!", speed: 40, delay: 500, isHighlight: true },
+            { text: "¡Feliz cumpleaños, pinche Ibeth!", speed: 50, delay: 400, isHighlight: true },
+            { text: "Te mando un abrazo enorme. Desconéctate un rato y disfruta mucho tu día.", speed: 40, delay: 200, isHighlight: true },
+            { text: "\nroot@aderis-system:~$ ", speed: 40, delay: 0 }
+        ];
+
+        let seqIndex = 0;
+
+        function typeWriter(text, speed, isHighlight, callback) {
+            let i = 0;
+            const span = document.createElement('span');
+            if (isHighlight) span.className = 'highlight';
+            terminal.appendChild(span);
+            
+            // Añadir el cursor al final
+            let cursor = document.querySelector('.cursor');
+            if (!cursor) {
+                cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                terminal.appendChild(cursor);
+            }
+
+            function type() {
+                if (i < text.length) {
+                    span.textContent += text.charAt(i);
+                    i++;
+                    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+                    setTimeout(type, speed);
+                } else {
+                    span.innerHTML += "<br>";
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        function runSequence() {
+            if (seqIndex < sequence.length) {
+                const step = sequence[seqIndex];
+                setTimeout(() => {
+                    typeWriter(step.text, step.speed, step.isHighlight, () => {
+                        seqIndex++;
+                        runSequence();
+                    });
+                }, step.delay);
+            }
+        }
+
+        // Iniciar la magia
+        setTimeout(runSequence, 1000);
+    </script>
+</body>
+</html>
